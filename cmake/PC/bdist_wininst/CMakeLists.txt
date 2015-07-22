@@ -92,3 +92,4 @@ if(CMAKE_CONFIGURATION_TYPES)
 endif()
 
 install(TARGETS bdist_wininst DESTINATION ${WININST_INSTALL_DIR})
+

@@ -26,3 +26,4 @@ test:
         parallel: true
         environment:
             STEP: test
+

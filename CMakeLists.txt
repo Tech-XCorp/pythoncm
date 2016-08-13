@@ -107,6 +107,7 @@ set(_download_2.7.7_md5 "cf842800b67841d64e7fb3cd8acb5663")
 set(_download_2.7.8_md5 "d4bca0159acb0b44a781292b5231936f")
 set(_download_2.7.9_md5 "5eebcaa0030dc4061156d3429657fb83")
 set(_download_2.7.10_md5 "d7547558fd673bd9d38e2108c6b42521")
+set(_download_2.7.12_md5 "88d61f82e3616a4be952828b3694109d")
 set(_extracted_dir "Python-${PY_VERSION}")
 
 if(NOT EXISTS ${SRC_DIR}/${_landmark} AND DOWNLOAD_SOURCES)

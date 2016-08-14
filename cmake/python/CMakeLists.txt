@@ -1,5 +1,8 @@
+set(subdir_2  Modules)
+set(subdir_3  Programs)
+
 set(PYTHON_SOURCES
-    ${SRC_DIR}/Modules/python.c
+    ${SRC_DIR}/${subdir_${PY_VERSION_MAJOR}}/python.c
 )
 
 add_executable(python ${PYTHON_SOURCES})
@@ -12,10 +15,17 @@ set_property(
 # version.
 if(BUILD_SHARED)
     target_link_libraries(python libpython-shared)
-else(BUILD_SHARED)
+else()
     target_link_libraries(python libpython-static)
-    set_target_properties(python PROPERTIES COMPILE_DEFINITIONS Py_NO_ENABLE_SHARED)
-endif(BUILD_SHARED)
+    set_target_properties(python PROPERTIES
+        COMPILE_DEFINITIONS Py_NO_ENABLE_SHARED
+        ENABLE_EXPORTS ON
+    )
+endif()
+
+if(MSVC)
+    set_target_properties(python PROPERTIES LINK_FLAGS /STACK:2000000)
+endif()
 
 # Export target
 set_property(GLOBAL APPEND PROPERTY PYTHON_TARGETS python)
@@ -42,7 +52,8 @@ if(UNIX AND PY_VERSION VERSION_GREATER "2.7.4")
     # Setup landmark allowing to run the interpreter from a build tree. See 'getpath.c' for details.
     add_custom_command(
         OUTPUT ${BIN_BUILD_DIR}/pybuilddir.txt ${EXTENSION_BUILD_DIR}/_sysconfigdata.py
-        COMMAND ${PYTHON_WRAPPER_COMMAND} $<TARGET_FILE:python> -E -S -m sysconfig --generate-posix-vars
+        COMMAND ${PYTHON_WRAPPER_COMMAND}
+          ${CMAKE_CROSSCOMPILING_EMULATOR} $<TARGET_FILE:python> -E -S -m sysconfig --generate-posix-vars
         COMMAND ${CMAKE_COMMAND}
           -DBIN_BUILD_DIR:PATH=${BIN_BUILD_DIR}
           -DPYTHON_BINARY_DIR:PATH=${CMAKE_BINARY_DIR}
@@ -59,7 +70,7 @@ if(UNIX AND PY_VERSION VERSION_GREATER "2.7.4")
         DESTINATION ${PYTHONHOME}/)
 endif()
 
-if(UNIX)
+if(UNIX AND NOT CMAKE_CROSSCOMPILING)
   install(CODE
 "message(STATUS \"Creating Python executable symlinks...\")
 execute_process(
@@ -71,4 +82,20 @@ execute_process(
     \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${BIN_INSTALL_DIR}
   )"
 )
-endif(UNIX)
+endif()
+
+# Copy up the gdb python hooks into a position where they can be automatically
+# loaded by gdb during Lib/test/test_gdb.py
+#
+# Distributors are likely to want to install this somewhere else e.g. relative
+# to the stripped DWARF data for the shared library.
+
+set(SRC_GDB_HOOKS ${SRC_DIR}/Tools/gdb/libpython.py)
+configure_file(
+    ${SRC_GDB_HOOKS}
+    ${BIN_BUILD_DIR}/python-gdb.py
+    COPYONLY
+)
+if(INSTALL_DEVELOPMENT)
+    install(FILES ${SRC_GDB_HOOKS} DESTINATION ${BIN_INSTALL_DIR} COMPONENT Development)
+endif()

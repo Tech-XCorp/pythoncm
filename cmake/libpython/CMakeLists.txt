@@ -27,6 +27,12 @@ elseif(WIN32)
     list(APPEND MODULE_SOURCES
         ${SRC_DIR}/PC/getpathp.c
     )
+    # if(MSVC14)
+    if(FALSE)
+        list(APPEND MODULE_SOURCES
+            ${SRC_DIR}/PC/invalid_parameter_handler.c
+        )
+    endif()
     # HACK To workaround limitation in escaping logic of CMake, the pythonpath
     #      separator is conditionally set depending of the version of Visual Studio.
     #      See http://cmake.org/Bug/view.php?id=14073

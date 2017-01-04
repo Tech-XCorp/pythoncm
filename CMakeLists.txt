@@ -211,6 +211,18 @@ set(_download_3.6.7_md5 "c83551d83bf015134b4b2249213f3f85")
 
 set(_extracted_dir "Python-${PY_VERSION}")
 
+# Replace this for VS 2015
+# if (FALSE)
+if (MSVC14 AND NOT (PY_VERSION VERSION_EQUAL 2.7.14))
+	message(STATUS "MSVC14 detected. Using cpython.")
+	set(_download_link "https://github.com/kovidgoyal/cpython/archive/${PY_VERSION_MAJOR}.${PY_VERSION_MINOR}.tar.gz")
+	foreach(verpatch 3 4 5 6 7 8 9 10 11 12 13)
+		set(_download_2.7.${verpatch}_md5 "abdf79ea758c9427351a778fbee6c314")
+	endforeach()
+	set(_download_2.7.13+_md5 "abdf79ea758c9427351a778fbee6c314")
+	set(_extracted_dir "cpython-${PY_VERSION_MAJOR}.${PY_VERSION_MINOR}")
+endif ()
+
 if(NOT EXISTS ${SRC_DIR}/${_landmark} AND DOWNLOAD_SOURCES)
     get_filename_component(_filename ${_download_link} NAME)
     set(_archive_filepath ${CMAKE_CURRENT_BINARY_DIR}/../${_filename})
@@ -318,8 +330,12 @@ endif()
 set(LIBPYTHON_VERSION ${PY_VERSION_MAJOR}.${PY_VERSION_MINOR})
 if(WIN32)
     set(LIBPYTHON_VERSION ${PY_VERSION_MAJOR}${PY_VERSION_MINOR})
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+      set(LIBPYTHON_VERSION ${LIBPYTHON_VERSION}_d)
+    endif ()
 endif()
 set(LIBPYTHON python${LIBPYTHON_VERSION})
+message(STATUS "LIBPYTHON = ${LIBPYTHON}.")
 
 # Proceed to the configure checks
 include(cmake/ConfigureChecks.cmake)
@@ -470,7 +486,11 @@ add_subdirectory(cmake/python CMakeBuild/python)
 add_subdirectory(cmake/include CMakeBuild/include)
 add_subdirectory(cmake/lib CMakeBuild/lib)
 if(BUILD_WININST)
+  # if (BUILD_WININST AND ZLIB_INCLUDE_DIR AND ZLIB_LIBRARIES)
+    message(STATUS "Creating wininst exe.")
     add_subdirectory(cmake/PC/bdist_wininst CMakeBuild/bdist_wininst)
+else ()
+    message(STATUS "NOT creating wininst exe.")
 endif()
 
 # Add target to run "Argument Clinic" over all source files

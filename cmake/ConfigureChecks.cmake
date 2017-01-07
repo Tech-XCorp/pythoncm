@@ -351,14 +351,31 @@ endif()
 find_library(HAVE_LIBTERMCAP termcap)
 
 set(LIBUTIL_LIBRARIES )
-check_function_exists("openpty" HAVE_BUILTIN_OPENPTY)
-if(HAVE_BUILTIN_OPENPTY)
-  # Libutil functions are builtin the environment (e.g emscripten)
-  set(LIBUTIL_LIBRARIES )
-  set(HAVE_LIBUTIL 1)
-else()
-  find_library(HAVE_LIBUTIL util)
-  set(LIBUTIL_LIBRARIES ${HAVE_LIBUTIL})
+set(LIBUTIL_EXPECTED 1)
+
+if(CMAKE_SYSTEM MATCHES "VxWorks\\-7$")
+  set(LIBUTIL_EXPECTED 0)
+  set(HAVE_LIBUTIL 0)
+endif()
+
+if(LIBUTIL_EXPECTED)
+  check_function_exists("openpty" HAVE_BUILTIN_OPENPTY)
+  if(HAVE_BUILTIN_OPENPTY)
+    # Libutil functions are builtin the environment (e.g emscripten)
+    set(LIBUTIL_LIBRARIES )
+    set(HAVE_LIBUTIL 1)
+  else()
+    if(NOT DEFINED HAVE_LIBUTIL OR "${HAVE_LIBUTIL}" STREQUAL "")
+      find_library(HAVE_LIBUTIL util)
+      message(STATUS "Found libutil: ${HAVE_LIBUTIL}")
+    endif()
+    if(HAVE_LIBUTIL)
+      set(LIBUTIL_LIBRARIES ${HAVE_LIBUTIL})
+    endif()
+  endif()
+  if(NOT HAVE_LIBUTIL)
+    message(FATAL_ERROR "Could NOT find libutil (missing: HAVE_LIBUTIL)")
+  endif()
 endif()
 
 if(APPLE)
@@ -540,6 +557,18 @@ elseif(CMAKE_SYSTEM MATCHES "QNX\\-6\\.3\\.2$")
   # defining NI_NUMERICHOST.
 
   set(define_xopen_source 0)
+
+elseif(CMAKE_SYSTEM MATCHES "VxWorks\\-7$")
+
+  # VxWorks-7
+
+  # On VxWorks-7, defining _XOPEN_SOURCE or _POSIX_C_SOURCE 
+  # leads to a failure in select.h because sys/types.h fails
+  # to define FD_SETSIZE.
+  # Reported by Martin Oberhuber as V7COR-4651.
+
+  set(define_xopen_source 0)
+
 endif()
 
 if(define_xopen_source)

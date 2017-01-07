@@ -303,6 +303,10 @@ else()
                 _ctypes/libffi/src/${_libffi_system_dir}/ffi64.c
                 _ctypes/libffi/src/${_libffi_system_dir}/unix64.S
                 )
+        elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686")
+          set(_libffi_system_extra_src
+                _ctypes/libffi/src/${_libffi_system_dir}/win32.S
+                )
         endif()
         # To facilitate an eventual contribution of the configuration
         # of fficonfig.h to the upstream project, corresponding tests
@@ -567,7 +571,12 @@ add_python_extension(_curses
 )
 set(dbm2_SOURCES dbmmodule.c)
 set(dbm3_SOURCES _dbmmodule.c)
-add_python_extension(dbm
+if(IS_PY3)
+  set(dbm_name _dbm)
+else()
+  set(dbm_name dbm)
+endif()
+add_python_extension(${dbm_name}
     REQUIRES NDBM_TAG GDBM_LIBRARY GDBM_COMPAT_LIBRARY
     SOURCES ${dbm${PY_VERSION_MAJOR}_SOURCES}
     DEFINITIONS HAVE_${NDBM_TAG}_H
@@ -576,7 +585,12 @@ add_python_extension(dbm
 )
 set(gdbm2_SOURCES gdbmmodule.c)
 set(gdbm3_SOURCES _gdbmmodule.c)
-add_python_extension(gdbm
+if(IS_PY3)
+  set(gdbm_name _gdbm)
+else()
+  set(gdbm_name gdbm)
+endif()
+add_python_extension(${gdbm_name}
     REQUIRES GDBM_INCLUDE_PATH GDBM_LIBRARY GDBM_COMPAT_LIBRARY
     SOURCES ${gdbm${PY_VERSION_MAJOR}_SOURCES}
     DEFINITIONS HAVE_GDBM_DASH_NDBM_H

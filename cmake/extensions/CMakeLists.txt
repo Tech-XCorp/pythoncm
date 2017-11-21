@@ -168,7 +168,7 @@ set(winreg3_NAME winreg)
 add_python_extension(${winreg${PY_VERSION_MAJOR}_NAME} REQUIRES WIN32 BUILTIN SOURCES ${SRC_DIR}/PC/${winreg${PY_VERSION_MAJOR}_NAME}.c)
 
 # Python3: Windows-only extensions
-add_python_extension(overlapped
+add_python_extension(_overlapped
     REQUIRES WIN32 IS_PY3
     SOURCES ${SRC_DIR}/Modules/overlapped.c
     LIBRARIES ws2_32
@@ -277,7 +277,7 @@ if(WIN32)
                   _ctypes/libffi_msvc/prep_cif.c
                   _ctypes/libffi_msvc/ffi.c
                   _ctypes/libffi_msvc/${_ctype_arch_impl}
-          REQUIRES BUILD_SHARED
+          REQUIRES BUILD_LIBPYTHON_SHARED
           INCLUDEDIRS ${SRC_DIR}/Modules/_ctypes/libffi_msvc
         )
     endif()

@@ -89,6 +89,13 @@ set(OBJECT2_SOURCES
     ${SRC_DIR}/Objects/intobject.c
     ${SRC_DIR}/Objects/stringobject.c
 )
+if(MSVC)
+    if(EXISTS ${SRC_DIR}/PC/invalid_parameter_handler.c)
+        list(APPEND OBJECT2_SOURCES
+            ${SRC_DIR}/PC/invalid_parameter_handler.c
+        )
+    endif()
+endif()
 
 set(OBJECT3_SOURCES
     ${SRC_DIR}/Objects/accu.c
@@ -326,11 +333,15 @@ foreach(name ${builtin_extensions})
 endforeach()
 
 # Collect builtin extension definitions
+set(builtin_compile_definitions_without_py_limited_api)
 foreach(name ${builtin_extensions})
     get_property(extension_${name}_definitions GLOBAL PROPERTY extension_${name}_definitions)
     if(extension_${name}_definitions)
         set_property(SOURCE ${extension_${name}_sources}
             APPEND PROPERTY COMPILE_DEFINITIONS ${extension_${name}_definitions})
+        if(NOT ${name} STREQUAL "xxlimited")
+            list(APPEND builtin_compile_definitions_without_py_limited_api ${extension_${name}_definitions})
+        endif()
     endif()
 endforeach()
 
@@ -382,6 +393,9 @@ add_executable(_freeze_importlib
   ${LIBPYTHON_OMIT_FROZEN_SOURCES}
   )
 target_link_libraries(_freeze_importlib ${LIBPYTHON_TARGET_LIBRARIES})
+if(builtin_compile_definitions_without_py_limited_api)
+  target_compile_definitions(_freeze_importlib PUBLIC ${builtin_compile_definitions_without_py_limited_api})
+endif()
 
 # Freeze modules
 set(LIBPYTHON_FROZEN_SOURCES
@@ -428,6 +442,9 @@ add_executable(pgen
     ${SRC_DIR}/Parser/printgrammar.c
     ${SRC_DIR}/Parser/pgenmain.c
 )
+if(builtin_compile_definitions_without_py_limited_api)
+  target_compile_definitions(pgen PUBLIC ${builtin_compile_definitions_without_py_limited_api})
+endif()
 
 # Collect libpython sources
 set(LIBPYTHON_SOURCES
@@ -477,7 +494,7 @@ function(add_libpython name type install component)
     endif()
 endfunction()
 
-if(BUILD_SHARED)
+if(BUILD_LIBPYTHON_SHARED)
     add_libpython(libpython-shared SHARED 1 Runtime)
     set_target_properties(libpython-shared PROPERTIES
         ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${LIBPYTHON_ARCHIVEDIR}
@@ -562,7 +579,7 @@ if(BUILD_SHARED)
 
 endif()
 
-if(BUILD_STATIC)
+if(NOT BUILD_LIBPYTHON_SHARED)
     add_libpython(libpython-static STATIC ${INSTALL_DEVELOPMENT} Development)
     if(HAVE_TARGET_COMPILE_DEFINITIONS)
         target_compile_definitions(libpython-static PUBLIC Py_NO_ENABLE_SHARED)

@@ -176,7 +176,7 @@ get_filename_component(SRC_DIR "${SRC_DIR}" ABSOLUTE)
 get_filename_component(_parent_dir ${CMAKE_CURRENT_BINARY_DIR} PATH)
 string(REGEX REPLACE "rc[1-9]$" "" _py_version_patch_no_rc ${PY_VERSION_PATCH})
 set(_py_version_no_rc "${PY_VERSION_MAJOR}.${PY_VERSION_MINOR}.${_py_version_patch_no_rc}")
-set(_download_link "http://www.python.org/ftp/python/${_py_version_no_rc}/Python-${PY_VERSION}.tgz")
+set(_download_link "https://www.python.org/ftp/python/${_py_version_no_rc}/Python-${PY_VERSION}.tgz")
 # Variable below represent the set of supported python version.
 set(_download_2.7.3_md5 "2cf641732ac23b18d139be077bd906cd")
 set(_download_2.7.4_md5 "592603cfaf4490a980e93ecb92bde44a")
@@ -255,12 +255,18 @@ string(REGEX REPLACE "([0-9])\\..+" "\\1"
     PY_VERSION_MAJOR ${_version})
 string(REGEX REPLACE "[0-9]\\.([0-9]+)\\..+" "\\1"
     PY_VERSION_MINOR ${_version})
-string(REGEX REPLACE "[0-9]\\.[0-9]+\\.([0-9]+)" "\\1"
+string(REGEX REPLACE "[0-9]\\.[0-9]+\\.([0-9]+)[+]?" "\\1"
     PY_VERSION_PATCH ${_version})
 set(PY_VERSION "${PY_VERSION_MAJOR}.${PY_VERSION_MINOR}.${PY_VERSION_PATCH}")
 message(STATUS "PY_VERSION: ${PY_VERSION}")
 if(NOT DEFINED _download_${PY_VERSION}_md5)
-    message(FATAL_ERROR "error: unknown python version '${PY_VERSION}'. Valid version should match '2.7.[3-12]' or '3.5.[1-2]'")
+    message(FATAL_ERROR "error: unknown python version '${PY_VERSION}'. Valid version should match '2.7.[3-13]' or '3.5.[1-2]'")
+endif()
+
+# Apply patches
+option(PYTHON_APPLY_PATCHES "Apply patches" ON)
+if(PYTHON_APPLY_PATCHES)
+  include(cmake/PythonApplyPatches.cmake)
 endif()
 
 # Convenience boolean variables to easily test python version
@@ -269,14 +275,6 @@ set(IS_PY2 1)
 if(PY_VERSION_MAJOR VERSION_GREATER 2)
     set(IS_PY3 1)
     set(IS_PY2 0)
-endif()
-
-# Convenience boolean variables to easily test the type of python library being build
-set(BUILD_STATIC 1)
-set(BUILD_SHARED 0)
-if(BUILD_LIBPYTHON_SHARED)
-  set(BUILD_STATIC 0)
-  set(BUILD_SHARED 1)
 endif()
 
 # Options depending of the python version
@@ -309,10 +307,6 @@ set(LIBPYTHON python${LIBPYTHON_VERSION})
 # Proceed to the configure checks
 include(cmake/ConfigureChecks.cmake)
 
-if(NOT BUILD_SHARED AND NOT BUILD_STATIC)
-    message(FATAL_ERROR "One or both of BUILD_SHARED or BUILD_STATIC must be set")
-endif()
-
 # Set PYTHONHOME
 set(LIBDIR "Lib") # See Lib/distutils/sysconfig.py - function 'get_python_lib'
 if(UNIX)
@@ -332,12 +326,20 @@ set(BIN_INSTALL_DIR bin)                         # Contains the python executabl
 if(INSTALL_WINDOWS_TRADITIONAL)
     set(BIN_INSTALL_DIR .)                       # Contains the python executable
 endif()
+set(LD_VERSION ${LIBPYTHON_VERSION}${ABIFLAGS})
 set(CONFIG_INSTALL_DIR share/${LIBPYTHON})
 set(EXTENSION_INSTALL_DIR ${PYTHONHOME}/lib-dynload)
+
+if (${LIBPYTHON_VERSION} GREATER 3.1)
+  set(LIB_CONFIG_INSTALL_DIR ${PYTHONHOME}/config-${LD_VERSION})
+else()
+  set(LIB_CONFIG_INSTALL_DIR ${PYTHONHOME}/config)
+endif()
+
 if(INSTALL_WINDOWS_TRADITIONAL)
     set(EXTENSION_INSTALL_DIR DLLs)
 endif()
-set(INCLUDE_INSTALL_DIR include/${LIBPYTHON})
+set(INCLUDE_INSTALL_DIR include/python${LD_VERSION})
 if(MSVC)
     set(INCLUDE_INSTALL_DIR include)
 endif()
@@ -429,7 +431,7 @@ file(WRITE ${CONFIG_BUILD_DIR}/PythonTargets.cmake "")
 # Define python executable wrapper command to ensure
 # python executable resolves the expected python library.
 set(PYTHON_WRAPPER_COMMAND )
-if(BUILD_SHARED AND UNIX)
+if(BUILD_LIBPYTHON_SHARED AND UNIX)
     set(_envvar LD_LIBRARY_PATH)
     if(APPLE)
         set(_envvar DYLD_LIBRARY_PATH)
@@ -447,7 +449,7 @@ add_subdirectory(cmake/libpython CMakeBuild/libpython)
 add_subdirectory(cmake/python CMakeBuild/python)
 add_subdirectory(cmake/include CMakeBuild/include)
 add_subdirectory(cmake/lib CMakeBuild/lib)
-if(BUILD_WININST)
+if (BUILD_WININST WIN32 AND ZLIB_INCLUDE_DIRS AND ZLIB_LIBRARIES)
     add_subdirectory(cmake/PC/bdist_wininst CMakeBuild/bdist_wininst)
 endif()
 
@@ -562,7 +564,7 @@ if(UNIX)
                    ${BIN_BUILD_DIR}/Makefile @ONLY)
     if(INSTALL_DEVELOPMENT)
         install(FILES ${BIN_BUILD_DIR}/Makefile
-                DESTINATION ${PYTHONHOME}/config/
+                DESTINATION ${LIB_CONFIG_INSTALL_DIR}
                 RENAME Makefile
                 COMPONENT Development)
     endif()
@@ -570,7 +572,7 @@ if(UNIX)
     # Utility scripts
     if(INSTALL_DEVELOPMENT)
         install(FILES ${SRC_DIR}/install-sh ${SRC_DIR}/Modules/makesetup
-                DESTINATION ${PYTHONHOME}/config/
+                DESTINATION ${LIB_CONFIG_INSTALL_DIR}
                 COMPONENT Development)
     endif()
 

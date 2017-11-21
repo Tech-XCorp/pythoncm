@@ -1,16 +1,21 @@
-# Ignore in source build files ...
-CMakeBuild
-CMakeCache.txt
-CMakeFiles
+# Ignore in source build files and directories ...
+/cmake_install.cmake
+/CMakeBuild
+/CMakeCache.txt
+/CMakeFiles
+/CTestTestfile.cmake
+/DartConfiguration.tcl
+/install_manifest.txt
 Makefile
-cmake_install.cmake
-install_manifest.txt
 
-bin
-lib
+/bin
+/lib
+/Misc/
+/share/
 
 # Ignore all dotfiles...
 .*
+!.circleci-matrix.yml
 !.travis.yml
 
 # Ignore all back-up files...
@@ -28,3 +33,11 @@ tags
 
 # Ignore pyc files
 *.pyc
+
+# Ignore Python source directories
+cython-*/
+Python-*/
+
+# Ignore Python source archives
+Python-*.tgz
+Python-*.zip

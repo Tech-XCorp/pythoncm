@@ -477,6 +477,7 @@ else()
     endif()
     add_python_extension(pyexpat
         SOURCES pyexpat.c
+                expat/loadlibrary.c
                 expat/xmlparse.c
                 expat/xmlrole.c
                 expat/xmltok.c

@@ -195,9 +195,9 @@ set(_download_3.5.2_md5 "3fe8434643a78630c61c6464fe2e7e72")
 set(_extracted_dir "Python-${PY_VERSION}")
 
 # Replace this for VS 2015
-if (FALSE)
-  # if (MSVC14)
-	message(STATUS "MSVC14 detected.")
+# if (FALSE)
+if (MSVC14 AND NOT (PYTHON_VERSION VERSION_EQUAL 2.7.14))
+	message(STATUS "MSVC14 detected. Using cpython.")
 	set(_download_link "https://github.com/kovidgoyal/cpython/archive/${PY_VERSION_MAJOR}.${PY_VERSION_MINOR}.tar.gz")
 	foreach(verpatch 3 4 5 6 7 8 9 10 11 12 13)
 		set(_download_2.7.${verpatch}_md5 "abdf79ea758c9427351a778fbee6c314")

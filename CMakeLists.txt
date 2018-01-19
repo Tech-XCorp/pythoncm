@@ -303,8 +303,12 @@ endif()
 set(LIBPYTHON_VERSION ${PY_VERSION_MAJOR}.${PY_VERSION_MINOR})
 if(WIN32)
     set(LIBPYTHON_VERSION ${PY_VERSION_MAJOR}${PY_VERSION_MINOR})
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+      set(LIBPYTHON_VERSION ${LIBPYTHON_VERSION}_d)
+    endif ()
 endif()
 set(LIBPYTHON python${LIBPYTHON_VERSION})
+message(STATUS "LIBPYTHON = ${LIBPYTHON}.")
 
 # Proceed to the configure checks
 include(cmake/ConfigureChecks.cmake)

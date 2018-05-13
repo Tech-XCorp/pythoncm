@@ -456,7 +456,10 @@ add_subdirectory(cmake/python CMakeBuild/python)
 add_subdirectory(cmake/include CMakeBuild/include)
 add_subdirectory(cmake/lib CMakeBuild/lib)
 if (BUILD_WININST AND ZLIB_INCLUDE_DIRS AND ZLIB_LIBRARIES)
+    message(STATUS "Creating wininst exe.")
     add_subdirectory(cmake/PC/bdist_wininst CMakeBuild/bdist_wininst)
+else ()
+    message(STATUS "NOT creating wininst exe.")
 endif()
 
 # Add target to run "Argument Clinic" over all source files

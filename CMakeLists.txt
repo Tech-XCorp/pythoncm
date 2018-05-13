@@ -461,6 +461,8 @@ add_subdirectory(cmake/include CMakeBuild/include)
 add_subdirectory(cmake/lib CMakeBuild/lib)
 if(BUILD_WININST)
     add_subdirectory(cmake/PC/bdist_wininst CMakeBuild/bdist_wininst)
+else()
+    message(STATUS "NOT building the wininst executable.")
 endif()
 
 # Add target to run "Argument Clinic" over all source files

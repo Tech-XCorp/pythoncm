@@ -479,13 +479,8 @@ add_subdirectory(cmake/lib CMakeBuild/lib)
 if (BUILD_WININST AND ZLIB_INCLUDE_DIR AND ZLIB_LIBRARIES)
     message(STATUS "Creating wininst exe.")
     add_subdirectory(cmake/PC/bdist_wininst CMakeBuild/bdist_wininst)
-<<<<<<< HEAD
 else ()
-    message(STATUS "NOT creating wininst exe.")
-=======
-else()
     message(STATUS "NOT building the wininst executable.")
->>>>>>> develop
 endif()
 
 # Add target to run "Argument Clinic" over all source files

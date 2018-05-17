@@ -208,7 +208,7 @@ set(_extracted_dir "Python-${PY_VERSION}")
 
 # Replace this for VS 2015
 # if (FALSE)
-if (MSVC14 AND NOT (PYTHON_VERSION VERSION_EQUAL 2.7.14))
+if (MSVC14 AND NOT (PY_VERSION VERSION_EQUAL 2.7.14))
 	message(STATUS "MSVC14 detected. Using cpython.")
 	set(_download_link "https://github.com/kovidgoyal/cpython/archive/${PY_VERSION_MAJOR}.${PY_VERSION_MINOR}.tar.gz")
 	foreach(verpatch 3 4 5 6 7 8 9 10 11 12 13)

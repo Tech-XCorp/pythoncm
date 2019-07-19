@@ -91,10 +91,11 @@ function(_apply_patches _subdir)
 endfunction()
 
 set(_py_version ${PY_VERSION})
-if("${PY_VERSION}" VERSION_LESS "3.0" AND
-    ("${PY_VERSION}" VERSION_EQUAL "2.7.13" OR "${PY_VERSION}" VERSION_GREATER "2.7.13"))
-  set(_py_version "2.7.13")
-  message(STATUS "Using ${_py_version} patches for 2.7.13 <= PY_VERSION < 3.0.0")
+if(PY_VERSION VERSION_LESS "3.0")
+  if (PY_VERSION VERSION_GREATER_EQUAL "2.7.13")
+    set(_py_version "2.7.13")
+  endif ()
+  message(STATUS "Using ${_py_version} patches for version, ${PY_VERSION}.")
 endif()
 
 # Apply patches
@@ -106,4 +107,5 @@ set(_version ${CMAKE_C_COMPILER_VERSION})
 if(MSVC)
   set(_version ${MSVC_VERSION})
 endif()
+message(STATUS "Using complier version ${_version}.")
 _apply_patches("${_py_version}/${CMAKE_SYSTEM_NAME}-${CMAKE_C_COMPILER_ID}/${_version}")

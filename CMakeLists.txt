@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.6)
 
-set(PYTHON_VERSION "3.6.4" CACHE STRING "The version of Python to build.")
+set(PYTHON_VERSION "3.6.7" CACHE STRING "The version of Python to build.")
 
 string(REPLACE "." ";" VERSION_LIST ${PYTHON_VERSION})
 list(GET VERSION_LIST 0 PY_VERSION_MAJOR)
@@ -191,6 +191,7 @@ set(_download_2.7.11_md5 "6b6076ec9e93f05dd63e47eb9c15728b")
 set(_download_2.7.12_md5 "88d61f82e3616a4be952828b3694109d")
 set(_download_2.7.13_md5 "17add4bf0ad0ec2f08e0cae6d205c700")
 set(_download_2.7.14_md5 "cee2e4b33ad3750da77b2e85f2f8b724")
+set(_download_2.7.16_md5 "f1a2ace631068444831d01485466ece0")
 # 3.5.x
 set(_download_3.5.1_md5 "be78e48cdfc1a7ad90efff146dce6cfe")
 set(_download_3.5.2_md5 "3fe8434643a78630c61c6464fe2e7e72")
@@ -203,6 +204,9 @@ set(_download_3.6.1_md5 "2d0fc9f3a5940707590e07f03ecb08b9")
 set(_download_3.6.2_md5 "e1a36bfffdd1d3a780b1825daf16e56c")
 set(_download_3.6.3_md5 "e9180c69ed9a878a4a8a3ab221e32fa9")
 set(_download_3.6.4_md5 "9de6494314ea199e3633211696735f65")
+set(_download_3.6.5_md5 "ab25d24b1f8cc4990ade979f6dc37883")
+set(_download_3.6.6_md5 "9a080a86e1a8d85e45eee4b1cd0a18a2")
+set(_download_3.6.7_md5 "c83551d83bf015134b4b2249213f3f85")
 
 set(_extracted_dir "Python-${PY_VERSION}")
 
@@ -294,6 +298,11 @@ set(IS_PY2 1)
 if(PY_VERSION_MAJOR VERSION_GREATER 2)
     set(IS_PY3 1)
     set(IS_PY2 0)
+endif()
+
+# Enable CXX language to support building of _distutils_findvs extension
+if(WIN32 AND IS_PY3)
+  enable_language(CXX)
 endif()
 
 # Options depending of the python version

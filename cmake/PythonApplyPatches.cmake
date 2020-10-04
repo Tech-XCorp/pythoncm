@@ -67,6 +67,7 @@ function(_apply_patches _subdir)
       message(STATUS "${msg} - skipping (already applied)")
       continue()
     endif()
+    message(STATUS "Executing ${PATCH_COMMAND} ${patches_dir}/${patch} in ${SRC_DIR}.")
     execute_process(
       COMMAND ${PATCH_COMMAND} ${patches_dir}/${patch}
       WORKING_DIRECTORY ${SRC_DIR}

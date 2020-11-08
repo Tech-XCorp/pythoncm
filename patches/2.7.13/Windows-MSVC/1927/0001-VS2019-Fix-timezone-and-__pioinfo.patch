@@ -1,0 +1,38 @@
+diff -ruN Python-2.7.16/Include/fileobject.h Python-2.7.16-1/Include/fileobject.h
+--- Python-2.7.16/Include/fileobject.h	2019-03-02 11:17:42.000000000 -0700
++++ Python-2.7.16-1/Include/fileobject.h	2020-11-08 09:44:21.513036200 -0700
+@@ -70,7 +70,9 @@
+ */
+ int _PyFile_SanitizeMode(char *mode);
+ 
+-#if defined _MSC_VER && _MSC_VER >= 1400
++#if defined _MSC_VER && _MSC_VER >= 1900 /* VS2015 */
++#define _PyVerify_fd(A) (1) /* dummy */
++#elif defined _MSC_VER && _MSC_VER >= 1400
+ /* A routine to check if a file descriptor is valid on Windows.  Returns 0
+  * and sets errno to EBADF if it isn't.  This is to avoid Assertions
+  * from various functions in the Windows CRT beginning with
+diff -ruN Python-2.7.16/Modules/posixmodule.c Python-2.7.16-1/Modules/posixmodule.c
+--- Python-2.7.16/Modules/posixmodule.c	2019-03-02 11:17:42.000000000 -0700
++++ Python-2.7.16-1/Modules/posixmodule.c	2020-11-08 09:45:01.388371700 -0700
+@@ -534,7 +534,7 @@
+ #endif
+ 
+ 
+-#if defined _MSC_VER && _MSC_VER >= 1400
++#if defined _MSC_VER && _MSC_VER >= 1400 && _MSC_VER < 1900
+ /* Microsoft CRT in VS2005 and higher will verify that a filehandle is
+  * valid and raise an assertion if it isn't.
+  * Normally, an invalid fd is likely to be a C program error and therefore
+diff -ruN Python-2.7.16/Modules/timemodule.c Python-2.7.16-1/Modules/timemodule.c
+--- Python-2.7.16/Modules/timemodule.c	2019-03-02 11:17:42.000000000 -0700
++++ Python-2.7.16-1/Modules/timemodule.c	2020-11-08 09:46:06.114788600 -0700
+@@ -56,7 +56,7 @@
+ static long main_thread;
+ 
+ 
+-#if defined(__BORLANDC__)
++#if defined(__BORLANDC__) || _MSC_VER >= 1900 /* VS2015 */
+ /* These overrides not needed for Win32 */
+ #define timezone _timezone
+ #define tzname _tzname

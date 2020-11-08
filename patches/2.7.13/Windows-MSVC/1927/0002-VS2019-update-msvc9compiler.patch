@@ -1,0 +1,105 @@
+diff -ruN Python-2.7.16-1/Lib/distutils/msvc9compiler.py Python-2.7.16-2/Lib/distutils/msvc9compiler.py
+--- Python-2.7.16-1/Lib/distutils/msvc9compiler.py	2019-03-02 11:17:42.000000000 -0700
++++ Python-2.7.16-2/Lib/distutils/msvc9compiler.py	2020-11-10 16:46:34.516717400 -0700
+@@ -181,13 +181,22 @@
+         return 6
+     i = i + len(prefix)
+     s, rest = sys.version[i:].split(" ", 1)
+-    majorVersion = int(s[:-2]) - 6
+-    minorVersion = int(s[2:3]) / 10.0
+-    # I don't think paths are affected by minor version in version 6
+-    if majorVersion == 6:
+-        minorVersion = 0
+-    if majorVersion >= 6:
+-        return majorVersion + minorVersion
++    mscver = int(s)
++    print "mscver: ", mscver
++    if mscver < 1900:
++        majorVersion = int(s[:-2]) - 6
++        minorVersion = int(s[2:3]) / 10.0
++        # I don't think paths are affected by minor version in version 6
++        if majorVersion == 6:
++            minorVersion = 0
++        if majorVersion >= 6:
++            return majorVersion + minorVersion
++    elif  mscver < 1910:
++        return 14
++    elif  mscver < 1920:
++        return 14.1
++    elif  mscver < 1930:
++        return 14.27
+     # else we don't know what version of the compiler this is
+     return None
+ 
+@@ -222,6 +231,37 @@
+     At first it tries to find the productdir of VS 2008 in the registry. If
+     that fails it falls back to the VS90COMNTOOLS env var.
+     """
++    print "find vcv vers: ", version
++    if version == 14.1:
++        """VS2017 doesn't seem to set any env vars"""
++        pdbase = 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\%s\\VC\\Auxiliary\\Build'
++        productdir = pdbase % "Enterprise"
++        if not os.path.isdir(productdir):
++            productdir = pdbase % "Professional"
++            if not os.path.isdir(productdir):
++                productdir = pdbase % "Community"
++        vcvarsall = os.path.join(productdir, "vcvarsall.bat")
++        if os.path.isfile(vcvarsall):
++            return vcvarsall
++        else:
++            log.debug("Unable to find vcvarsall.bat for version 14.1")
++            return None
++    elif version == 14.27:
++        """VS2019 doesn't seem to set any env vars"""
++        pdbase = 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\%s\\VC\\Auxiliary\\Build'
++        productdir = pdbase % "Enterprise"
++        if not os.path.isdir(productdir):
++            productdir = pdbase % "Professional"
++            if not os.path.isdir(productdir):
++                productdir = pdbase % "Community"
++        vcvarsall = os.path.join(productdir, "vcvarsall.bat")
++        if os.path.isfile(vcvarsall):
++            print("vcvarsall = %s"%vcvarsall)
++            return vcvarsall
++        else:
++            log.debug("Unable to find vcvarsall.bat for version 14.27")
++            return None
++
+     vsbase = VS_BASE % version
+     try:
+         productdir = Reg.get_value(r"%s\Setup\VC" % vsbase,
+@@ -232,6 +272,7 @@
+     # trying Express edition
+     if productdir is None:
+         vsbase = VSEXPRESS_BASE % version
++        print "vsbase: ", vsbase
+         try:
+             productdir = Reg.get_value(r"%s\Setup\VC" % vsbase,
+                                        "productdir")
+@@ -241,6 +282,7 @@
+ 
+     if not productdir or not os.path.isdir(productdir):
+         toolskey = "VS%0.f0COMNTOOLS" % version
++        print "toolskey: ", toolskey
+         toolsdir = os.environ.get(toolskey, None)
+ 
+         if toolsdir and os.path.isdir(toolsdir):
+@@ -268,9 +310,15 @@
+     result = {}
+ 
+     if vcvarsall is None:
+-        raise DistutilsPlatformError("Unable to find vcvarsall.bat")
++            raise DistutilsPlatformError("Unable to find vcvarsall.bat")
+     log.debug("Calling 'vcvarsall.bat %s' (version=%s)", arch, version)
+-    popen = subprocess.Popen('"%s" %s & set' % (vcvarsall, arch),
++    if version >= 14.1:
++        varch = 'x64'
++        popen = subprocess.Popen([vcvarsall, varch, '&',  'set'],
++                             stdout=subprocess.PIPE,
++                             stderr=subprocess.PIPE)
++    else:
++        popen = subprocess.Popen('"\"%s\"" %s & set' % (vcvarsall, arch),
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+     try:
